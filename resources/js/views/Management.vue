@@ -1,10 +1,11 @@
 <template>
-    <Navbar />
-    <div class="container">
+    <Navbar :class="[modalVisibility ? 'blur-md' : '']" />
+    <div :class="['container']">
         <div class="row">
             <Container
                 :title="!editMode ? 'Add new product' : 'Edit product'"
                 icon="far fa-cube"
+                :class="modalVisibility ? 'blur-md' : ''"
             >
                 <div>
                     <p
@@ -153,7 +154,7 @@
             </Container>
 
             <!--All products listing  -->
-            <div class="col-lg-8">
+            <div :class="['col-lg-8', modalVisibility ? 'blur-md' : '']">
                 <div
                     class="w-full bg-gray-800 mt-4 mb-4 rounded shadow-2xl pt-2"
                 >
@@ -206,6 +207,13 @@
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
                                 <button
+                                    @click="
+                                        () => {
+                                            productHandler.deleteProductId =
+                                                product.id;
+                                            modalVisibility = true;
+                                        }
+                                    "
                                     class="ml-1 bg-red-700 p-2 shadow-2xl text-white hover:bg-red-600 transition-colors mt-2 rounded"
                                 >
                                     <i class="fas fa-trash"></i> Delete
@@ -217,14 +225,19 @@
             </div>
             <!--All products listing  -->
             <!-- Modal Component -->
-            <Modal title="Are you sure to delete?">
+            <Modal
+                v-if="modalVisibility"
+                title="Are you sure to delete?"
+                class="z-10"
+            >
                 <button
+                    @click="AxiosDeleteProduct"
                     class="mt-6 w-24 bg-green-600 p-2 text-white shadow-2xl transition-colors hover:bg-green-500"
                 >
                     Yes
                 </button>
                 <button
-                    @click="make = 'yes'"
+                    @click="modalVisibility = false"
                     class="mt-6 w-24 bg-blue-500 p-2 text-white shadow-2xl transition-colors ml-1 hover:bg-blue-400"
                 >
                     No
@@ -282,9 +295,10 @@ const productState = reactive({
 const productHandler = reactive({
     products: "",
     filteredProducts: "",
+    deleteProductId: "",
 });
 
-const make = ref("");
+const modalVisibility = ref(false);
 
 //Filter products
 const filterProducts = (filterKeyword) => {
@@ -336,7 +350,7 @@ const addProduct = async () => {
         .then(() => {
             clearFields();
             toast.success("Product Added Successfully", {
-                timeout: 4000,
+                timeout: 3000,
             });
         })
         .catch((error) => {
@@ -392,7 +406,7 @@ const updateProduct = async () => {
         .put(`api/products/${productId}`, productState, config)
         .then(() => {
             toast.success("Product Updated Successfully", {
-                timeout: 4000,
+                timeout: 3000,
             });
             clearFields();
             submitBtn.value.disabled = false;
@@ -408,6 +422,20 @@ const updateProduct = async () => {
             closeBtn.value.disabled = false;
             submitBtn.value.innerHTML = `<i class="fas fa-edit"></i> Update product`;
             focusProductName.value.focus();
+        });
+};
+
+//Axios delete product
+const AxiosDeleteProduct = () => {
+    axios
+        .delete(`api/products/${productHandler.deleteProductId}`, config)
+        .then(() => {
+            productHandler.deleteProductId = false;
+            modalVisibility.value = false;
+            toast.success("Product Deleted Successfully", {
+                timeout: 3000,
+            });
+            axiosGetProducts();
         });
 };
 
