@@ -138,7 +138,7 @@
                 <div v-if="editMode">
                     <button
                         ref="submitBtn"
-                        @click="updateProduct"
+                        @click="axiosUpdateProduct"
                         class="bg-indigo-500 p-2 shadow-2xl text-white hover:bg-indigo-400 transition-colors mt-2 rounded"
                     >
                         <i class="fas fa-edit"></i> Update product
@@ -182,6 +182,36 @@
                             </div>
                         </div>
                         <!-- End Search Component -->
+                        <!-- Loading effect -->
+                        <div ref="loadingEffect" class="row">
+                            <div class="p-4 max-w-sm w-full mx-auto">
+                                <div class="animate-pulse flex space-x-4">
+                                    <div
+                                        class="rounded-full bg-slate-700 h-10 w-10"
+                                    ></div>
+                                    <div class="flex-1 space-y-6 py-1">
+                                        <div
+                                            class="h-2 bg-slate-700 rounded"
+                                        ></div>
+                                        <div class="space-y-3">
+                                            <div class="grid grid-cols-3 gap-4">
+                                                <div
+                                                    class="h-2 bg-slate-700 rounded col-span-2"
+                                                ></div>
+                                                <div
+                                                    class="h-2 bg-slate-700 rounded col-span-1"
+                                                ></div>
+                                            </div>
+                                            <div
+                                                class="h-2 bg-slate-700 rounded"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loading effect -->
                         <div
                             v-for="product in productHandler.filteredProducts"
                             :key="product.id"
@@ -228,7 +258,7 @@
             <Modal
                 v-if="modalVisibility"
                 title="Are you sure to delete?"
-                class="z-10"
+                class="flex z-10 h-screen fixed w-full justify-center items-start"
             >
                 <button
                     @click="AxiosDeleteProduct"
@@ -253,7 +283,7 @@ import Container from "../components/Container.vue";
 import useUserStore from "../stores/user";
 import Navbar from "../components/Navbar.vue";
 import Modal from "../components/Modal.vue";
-import { reactive, ref } from "vue";
+import { reactive, ref, computed } from "vue";
 import axios from "axios";
 import { useToast } from "vue-toastification";
 
@@ -263,6 +293,9 @@ const userStore = useUserStore();
 
 //Filter products by keyword
 const filterKeyword = ref("");
+
+//Loading effect reference
+const loadingEffect = ref();
 
 //Reference Submit Button
 const submitBtn = ref();
@@ -364,10 +397,11 @@ const addProduct = async () => {
 };
 
 //Axios getting all products
-const axiosGetProducts = () => {
-    axios.get("api/products", config).then((response) => {
+const axiosGetProducts = async () => {
+    await axios.get("api/products", config).then((response) => {
         productHandler.products = response.data;
         productHandler.filteredProducts = productHandler.products;
+        loadingEffect.value.style.display = "none";
     });
 };
 
@@ -395,7 +429,7 @@ const getAxiosProduct = async ($id) => {
 };
 
 //Axios update product
-const updateProduct = async () => {
+const axiosUpdateProduct = async () => {
     const productId = productState.product_id;
 
     submitBtn.value.disabled = true;
