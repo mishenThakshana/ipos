@@ -438,6 +438,4 @@ const AxiosDeleteProduct = () => {
             axiosGetProducts();
         });
 };
-
-axiosGetProducts();
 </script>
